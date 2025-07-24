@@ -1,0 +1,59 @@
+name: Multi-OS Package Builder
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  build:
+    runs-on: [self-hosted, temp]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu2204
+            image: ubuntu:22.04
+            code: jammy
+            repo: ubuntu
+            folder: packages
+            script: .github/scripts/deb/ubuntu/22.04.sh
+
+
+    container:
+      image: ${{ matrix.image }}
+      options: --privileged
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Build Script
+        run: |
+          chmod +x ${{ matrix.script }}
+          ${{ matrix.script }}
+        env:
+          BUILD_NAME: ${{ matrix.name }}
+          BUILD_IMAGE: ${{ matrix.image }}
+          BUILD_CODE: ${{ matrix.code }}
+          BUILD_REPO: ${{ matrix.repo }}
+          BUILD_FOLDER: ${{ matrix.folder }}
+          UPLOAD_USER: ${{ secrets.UPLOAD_USER }}
+          UPLOAD_PASS: ${{ secrets.UPLOAD_PASS }}
+          BUILD_CORES: '70'
+          DOMAIN: 'repo.julio.al'
+          # https://nginx.org/en/download.html
+          NGINX_VERSION: '1.29.0'
+          # https://github.com/openssl/openssl
+          SYSTEM_OPENSSL: '3.5.1'
+          # https://github.com/PCRE2Project/pcre2/releases
+          SYSTEM_PCRE: '10.45'
+          # https://github.com/owasp-modsecurity/ModSecurity-nginx/releases
+          NGX_MOD_MODSECURITY: '1.0.4'
+          # https://github.com/openresty/headers-more-nginx-module/tags
+          NGX_MOD_HEADERS_MORE: '0.39'
+          # https://github.com/leev/ngx_http_geoip2_module/releases
+          NGX_MOD_GEOIP2: '3.4'
