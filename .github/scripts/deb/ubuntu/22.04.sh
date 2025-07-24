@@ -20,7 +20,7 @@ echo "Installing curl..." && apt-get install curl jq -y > /dev/null 2>&1
 # ====================================================================================
 #LATEST_VERSION_NGINX=$(curl -s https://nginx.org/en/download.html | grep -oP 'nginx-\K[0-9]+\.[0-9]+\.[0-9]+(?=\.tar\.gz)' | sort -V | tail -1)
 LATEST_VERSION_NGINX="$NGINX_VERSION"
-DEB_PACKAGE_NAME="raweb-nginx"
+DEB_PACKAGE_NAME="raweb-webserver"
 DEB_ARCH="amd64"
 DEB_DIST="$BUILD_CODE"
 DEB_PACKAGE_FILE_NAME="${DEB_PACKAGE_NAME}_${LATEST_VERSION_NGINX}_${DEB_DIST}_${DEB_ARCH}.deb"
@@ -196,14 +196,14 @@ mkdir -p /raweb/apps/webserver/config/
 mkdir -p /raweb/apps/webserver/users/
 mkdir -p /raweb/apps/webserver/conf.d/
 mkdir -p /raweb/apps/webserver/modsec
-mv /raweb/apps/webserver/mime.types /raweb/apps/webserver/config/mime.types
-curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/nginx.conf > /raweb/apps/webserver/nginx.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/mime.types > /raweb/apps/webserver/config/mime.types
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/nginx.conf > /raweb/apps/webserver/raweb.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/cloudflare.conf > /raweb/apps/webserver/config/cloudflare.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/http_map.conf > /raweb/apps/webserver/config/http_map.conf
 curl -s https://raw.githubusercontent.com/nbs-system/naxsi/master/naxsi_config/naxsi_core.rules > /raweb/apps/webserver/modsec/naxi.core
 curl -s https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended > /raweb/apps/webserver/modsec/modsecurity.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/tester.conf > /raweb/apps/webserver/modsec/tester.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/unicode.mapping > /raweb/apps/webserver/modsec/unicode.mapping
-
-
 
 systemctl daemon-reload
 systemctl enable raweb-webserver.service
