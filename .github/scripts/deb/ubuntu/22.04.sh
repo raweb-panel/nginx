@@ -36,7 +36,7 @@ DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata dialog > /de
 apt-get -y install wget zip unzip build-essential libssl-dev curl nano git > /dev/null 2>&1
 # apt-get -y install iptables ipset
 apt-get install -y libtool pkg-config make cmake automake autoconf > /dev/null 2>&1
-apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev liblua5.1-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev > /dev/null 2>&1
+apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev liblua5.1-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev rsync > /dev/null 2>&1
 # ====================================================================================
 mkdir -p $GITHUB_WORKSPACE/nginx_source
 mkdir -p $GITHUB_WORKSPACE/nginx_mods
