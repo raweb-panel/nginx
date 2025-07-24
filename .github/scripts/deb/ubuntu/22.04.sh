@@ -44,7 +44,7 @@ cd $GITHUB_WORKSPACE/nginx_source; wget https://nginx.org/download/nginx-${NGINX
 # ====================================================================================
 # BORINGSSL
 cd $GITHUB_WORKSPACE/nginx_mods; git clone https://boringssl.googlesource.com/boringssl
-cd $GITHUB_WORKSPACE/nginx_mods/boringssl; mkdir -p build; cd build; cmake ..; make -j$CORES
+cd $GITHUB_WORKSPACE/nginx_mods/boringssl; mkdir -p build; cd build; cmake .. > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1
 mkdir -p "$GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib"
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl"; ln -s ../include include
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
@@ -55,16 +55,16 @@ cd $GITHUB_WORKSPACE/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zl
 # ====================================================================================
 # SYSTEM_MODSECURITY
 git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git
-cd ModSecurity; git submodule init; git submodule update; ./build.sh; ./configure; make -j$CORES; make install
+cd ModSecurity; git submodule init; git submodule update; ./build.sh; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_PCRE
 cd $GITHUB_WORKSPACE/nginx_mods && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
 cd $GITHUB_WORKSPACE/nginx_mods && tar xf pcre2-${SYSTEM_PCRE}.tar.gz; rm -Rf pcre2-${SYSTEM_PCRE}.tar.gz
-cd $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh; make clean; ./configure; make -j$CORES
+cd $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; make clean > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1
 # ====================================================================================
 # LibInjection
 cd $GITHUB_WORKSPACE/nginx_mods && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/libinjection && echo "Configuring libmodsecurity" && ./autogen.sh && ./configure && make -j$CORES && make install
+cd $GITHUB_WORKSPACE/nginx_mods/libinjection && echo "Configuring libmodsecurity" && ./autogen.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_MODSECURITY
 cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
@@ -75,7 +75,7 @@ cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/openresty/headers-more
 cd $GITHUB_WORKSPACE/nginx_mods/; tar xf v${NGX_MOD_HEADERS_MORE}.tar.gz; rm -Rf v${NGX_MOD_HEADERS_MORE}.tar.gz
 # ====================================================================================
 # Brotli
-cd $GITHUB_WORKSPACE/nginx_mods/; git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $GITHUB_WORKSPACE/nginx_mods/ngx_brotli && git submodule update --init
+cd $GITHUB_WORKSPACE/nginx_mods/; git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $GITHUB_WORKSPACE/nginx_mods/ngx_brotli && git submodule update --init > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_GEOIP2
 cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_MOD_GEOIP2}.tar.gz
@@ -139,9 +139,9 @@ cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS=-fPIC CXXFLAG
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/naxsi/naxsi_src                                   \
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/ngx_brotli                                        \
                                           --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC -flto=$CORES -I $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/include/" \
-                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -flto=$CORES -L $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib/ -lstdc++"
+                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -flto=$CORES -L $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib/ -lstdc++" > /dev/null 2>&1
                                           touch $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/include/openssl/ssl.h
-                                          make -j$CORES && make install && make clean
+                                          make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
 # ====================================================================================
 # --- Prepare DEB package structure for raweb-webserver ---
