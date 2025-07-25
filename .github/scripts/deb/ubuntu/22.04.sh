@@ -33,10 +33,10 @@ fi
 # ====================================================================================
 DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata dialog > /dev/null 2>&1
 # apt-get purge nftables firewalld ufw -y; apt-get autoremove -y
-apt-get -y install wget zip unzip build-essential libssl-dev curl nano git > /dev/null 2>&1
+echo "Install reqs..." && apt-get -y install wget zip unzip build-essential libssl-dev curl nano git > /dev/null 2>&1
 # apt-get -y install iptables ipset
-apt-get install -y libtool pkg-config make cmake automake autoconf > /dev/null 2>&1
-apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev liblua5.1-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev rsync > /dev/null 2>&1
+echo "Install reqs..." && apt-get install -y libtool pkg-config make cmake automake autoconf > /dev/null 2>&1
+echo "Install reqs..." && apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev liblua5.1-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev rsync > /dev/null 2>&1
 # ====================================================================================
 mkdir -p $GITHUB_WORKSPACE/nginx_source
 mkdir -p $GITHUB_WORKSPACE/nginx_mods
@@ -144,7 +144,6 @@ cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS=-fPIC CXXFLAG
                                           make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
 # ====================================================================================
-# --- Prepare DEB package structure for raweb-webserver ---
 DEB_BUILD_DIR="$GITHUB_WORKSPACE/debbuild"
 DEB_ROOT="$DEB_BUILD_DIR/${DEB_PACKAGE_NAME}_${LATEST_VERSION_NGINX}_${DEB_ARCH}"
 
@@ -157,7 +156,6 @@ cp /usr/sbin/raweb-webserver "$DEB_ROOT/raweb/apps/webserver/"
 cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
 chmod +x "$DEB_ROOT/raweb/apps/webserver/raweb-webserver"
 
-# Ensure required shared libraries are included
 mkdir -p "$DEB_ROOT/usr/lib/"
 for lib in $(ldd /usr/sbin/raweb-webserver | grep "=> /" | awk '{print $3}'); do
     cp "$lib" "$DEB_ROOT/usr/lib/"
@@ -205,13 +203,16 @@ mkdir -p /raweb/apps/webserver/conf.d/
 mkdir -p /raweb/apps/webserver/modsec
 mkdir -p /var/log/raweb/
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/modules.conf > /raweb/apps/webserver/config/modules.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/gzip.conf > /raweb/apps/webserver/config/gzip.conf
+if [ ! -f /raweb/apps/webserver/config/banned.conf ]; then
+    curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/banned.conf > /raweb/apps/webserver/config/banned.conf
+fi
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/mime.types > /raweb/apps/webserver/config/mime.types
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/nginx.conf > /raweb/apps/webserver/raweb.conf
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/cloudflare.conf > /raweb/apps/webserver/config/cloudflare.conf
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/http_map.conf > /raweb/apps/webserver/config/http_map.conf
 curl -s https://raw.githubusercontent.com/nbs-system/naxsi/master/naxsi_config/naxsi_core.rules > /raweb/apps/webserver/modsec/naxi.core
 curl -s https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended > /raweb/apps/webserver/modsec/modsecurity.conf
-curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/tester.conf > /raweb/apps/webserver/modsec/tester.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/unicode.mapping > /raweb/apps/webserver/modsec/unicode.mapping
 chown -R raweb:raweb /raweb; chown -R raweb:raweb /raweb/*
 systemctl daemon-reload
@@ -251,7 +252,6 @@ rm -f /etc/logrotate.d/raweb-webserver
 echo "Raweb Webserver removed successfully"
 EOF
 
-# Add logrotate config
 mkdir -p "$DEB_ROOT/etc/logrotate.d/"
 cat > "$DEB_ROOT/etc/logrotate.d/raweb-webserver" <<EOF
 /var/log/raweb/webserver_access.log /var/log/raweb/webserver_error.log {
