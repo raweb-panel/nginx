@@ -55,7 +55,7 @@ cd $GITHUB_WORKSPACE/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zl
 # ====================================================================================
 # SYSTEM_MODSECURITY
 git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git
-cd ModSecurity; git submodule init; git submodule update; ./build.sh; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd ModSecurity; git submodule init; git submodule update; ./build.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_PCRE
 cd $GITHUB_WORKSPACE/nginx_mods && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
@@ -156,6 +156,12 @@ mkdir -p "$DEB_ROOT/DEBIAN"
 cp /usr/sbin/raweb-webserver "$DEB_ROOT/raweb/apps/webserver/"
 cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
 chmod +x "$DEB_ROOT/raweb/apps/webserver/raweb-webserver"
+
+# Ensure required shared libraries are included
+mkdir -p "$DEB_ROOT/usr/lib/"
+for lib in $(ldd /usr/sbin/raweb-webserver | grep "=> /" | awk '{print $3}'); do
+    cp "$lib" "$DEB_ROOT/usr/lib/"
+done
 
 cat > "$DEB_ROOT/etc/systemd/system/raweb-webserver.service" <<EOF
 [Unit]
