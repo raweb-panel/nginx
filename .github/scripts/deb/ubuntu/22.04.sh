@@ -19,7 +19,7 @@ echo "Upgrading..." && apt-get upgrade -y > /dev/null 2>&1
 echo "Installing curl..." && apt-get install curl jq -y > /dev/null 2>&1
 # ====================================================================================
 #LATEST_VERSION_NGINX=$(curl -s https://nginx.org/en/download.html | grep -oP 'nginx-\K[0-9]+\.[0-9]+\.[0-9]+(?=\.tar\.gz)' | sort -V | tail -1)
-LATEST_VERSION_NGINX="$NGINX_VERSION"
+LATEST_VERSION_NGINX="$RAWEB_WEBSERVER_VERSION"
 DEB_PACKAGE_NAME="raweb-webserver"
 DEB_ARCH="amd64"
 DEB_DIST="$BUILD_CODE"
@@ -202,6 +202,8 @@ mkdir -p /raweb/apps/webserver/config/
 mkdir -p /raweb/apps/webserver/users/
 mkdir -p /raweb/apps/webserver/conf.d/
 mkdir -p /raweb/apps/webserver/modsec
+mkdir -p /var/log/raweb/
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/modules.conf > /raweb/apps/webserver/config/modules.conf
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/mime.types > /raweb/apps/webserver/config/mime.types
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/nginx.conf > /raweb/apps/webserver/raweb.conf
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/cloudflare.conf > /raweb/apps/webserver/config/cloudflare.conf
@@ -216,6 +218,11 @@ systemctl enable raweb-webserver.service
 if ! systemctl is-active --quiet raweb-webserver.service; then
     systemctl start raweb-webserver.service
 fi
+
+# Ensure logrotate is installed and reload config
+apt-get install -y logrotate
+logrotate -f /etc/logrotate.d/raweb-webserver || true
+
 echo "Raweb Webserver installed and started"
 EOF
 
@@ -240,7 +247,21 @@ fi
 if [ -d "/raweb/apps" ] && [ -z "$(ls -A /raweb/apps)" ]; then
     rmdir /raweb/apps
 fi
+rm -f /etc/logrotate.d/raweb-webserver
 echo "Raweb Webserver removed successfully"
+EOF
+
+# Add logrotate config
+mkdir -p "$DEB_ROOT/etc/logrotate.d/"
+cat > "$DEB_ROOT/etc/logrotate.d/raweb-webserver" <<EOF
+/var/log/raweb/webserver_access.log /var/log/raweb/webserver_error.log {
+    size 100M
+    rotate 5
+    compress
+    missingok
+    notifempty
+    copytruncate
+}
 EOF
 
 chmod 755 "$DEB_ROOT/DEBIAN/postinst" "$DEB_ROOT/DEBIAN/prerm" "$DEB_ROOT/DEBIAN/postrm"
@@ -248,10 +269,9 @@ chmod 755 "$DEB_ROOT/DEBIAN/postinst" "$DEB_ROOT/DEBIAN/prerm" "$DEB_ROOT/DEBIAN
 DEB_PACKAGE_FILE="$DEB_BUILD_DIR/${DEB_PACKAGE_NAME}_${LATEST_VERSION_NGINX}_${DEB_DIST}_${DEB_ARCH}.deb"
 dpkg-deb --build "$DEB_ROOT" "$DEB_PACKAGE_FILE"
 
-ls -la "$DEB_PACKAGE_FILE"
 echo "$UPLOAD_PASS" > $GITHUB_WORKSPACE/.rsync
 chmod 600 $GITHUB_WORKSPACE/.rsync
-rsync -avz --password-file=$GITHUB_WORKSPACE/.rsync "$DEB_PACKAGE_FILE" rsync://$UPLOAD_USER@repo.julio.al/$BUILD_FOLDER/$BUILD_REPO/$BUILD_CODE/
+rsync -avz --password-file=$GITHUB_WORKSPACE/.rsync "$DEB_PACKAGE_FILE" rsync://$UPLOAD_USER@$DOMAIN/$BUILD_FOLDER/$BUILD_REPO/$BUILD_CODE/
 # ====================================================================================
 # ====================================================================================
 # ====================================================================================
