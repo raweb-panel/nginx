@@ -190,6 +190,7 @@ Section: web
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: Raweb Panel <cd@julio.al>
+Depends: logrotate
 Description: Raweb Webserver (nginx) for Ubuntu $BUILD_CODE
 EOF
 
@@ -212,7 +213,7 @@ curl -s https://raw.githubusercontent.com/nbs-system/naxsi/master/naxsi_config/n
 curl -s https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended > /raweb/apps/webserver/modsec/modsecurity.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/tester.conf > /raweb/apps/webserver/modsec/tester.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/unicode.mapping > /raweb/apps/webserver/modsec/unicode.mapping
-
+chown -R raweb:raweb /raweb; chown -R raweb:raweb /raweb/*
 systemctl daemon-reload
 systemctl enable raweb-webserver.service
 if ! systemctl is-active --quiet raweb-webserver.service; then
@@ -220,7 +221,6 @@ if ! systemctl is-active --quiet raweb-webserver.service; then
 fi
 
 # Ensure logrotate is installed and reload config
-apt-get install -y logrotate
 logrotate -f /etc/logrotate.d/raweb-webserver || true
 
 echo "Raweb Webserver installed and started"
