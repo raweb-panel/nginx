@@ -17,6 +17,9 @@ export DEBIAN_FRONTEND=noninteractive
 echo "Updating..." && apt-get update -y > /dev/null 2>&1
 echo "Upgrading..." && apt-get upgrade -y > /dev/null 2>&1
 echo "Installing curl..." && apt-get install curl jq -y > /dev/null 2>&1
+# id raweb &>/dev/null || useradd -m -d /raweb raweb; chown -R raweb:raweb /raweb
+id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb
+mkdir -p /var/tmp/raweb/body/
 # ====================================================================================
 #LATEST_VERSION_NGINX=$(curl -s https://nginx.org/en/download.html | grep -oP 'nginx-\K[0-9]+\.[0-9]+\.[0-9]+(?=\.tar\.gz)' | sort -V | tail -1)
 LATEST_VERSION_NGINX="$RAWEB_WEBSERVER_VERSION"
@@ -151,12 +154,16 @@ rm -rf "$DEB_BUILD_DIR"
 mkdir -p "$DEB_ROOT/raweb/apps/webserver"
 mkdir -p "$DEB_ROOT/etc/systemd/system"
 mkdir -p "$DEB_ROOT/DEBIAN"
-
-cp /usr/sbin/raweb-webserver "$DEB_ROOT/raweb/apps/webserver/"
-cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
-chmod +x "$DEB_ROOT/raweb/apps/webserver/raweb-webserver"
-
 mkdir -p "$DEB_ROOT/usr/lib/"
+mkdir -p "$DEB_ROOT/usr/sbin/"
+mdkir -p "$DEB_ROOT/var/tmp/raweb/body/"
+mkdir -p "$DEB_ROOT/raweb/apps/webserver/modsec/"
+git clone https://github.com/coreruleset/coreruleset.git $DEB_ROOT/raweb/apps/webserver/modsec/owasp-crs
+
+cp /usr/sbin/raweb-webserver "$DEB_ROOT/usr/sbin/"
+cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
+chmod +x "$DEB_ROOT/usr/sbin/raweb-webserver"
+
 for lib in $(ldd /usr/sbin/raweb-webserver | grep "=> /" | awk '{print $3}'); do
     cp "$lib" "$DEB_ROOT/usr/lib/"
 done
@@ -171,7 +178,7 @@ Wants=network.target
 Type=simple
 User=root
 WorkingDirectory=/raweb/apps/webserver
-ExecStart=/raweb/apps/webserver/raweb-webserver -c /raweb/apps/webserver/raweb.conf
+ExecStart=/usr/sbin/raweb-webserver -c /raweb/apps/webserver/raweb.conf
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -195,7 +202,7 @@ EOF
 cat > "$DEB_ROOT/DEBIAN/postinst" <<'EOF'
 #!/bin/bash
 set -e
-id raweb &>/dev/null || useradd -m -d /raweb raweb; chown -R raweb:raweb /raweb
+id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb
 rm -rf /raweb/apps/webserver/*.default
 mkdir -p /raweb/apps/webserver/config/
 mkdir -p /raweb/apps/webserver/users/
@@ -208,11 +215,22 @@ if [ ! -f /raweb/apps/webserver/config/banned.conf ]; then
     curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/banned.conf > /raweb/apps/webserver/config/banned.conf
 fi
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/mime.types > /raweb/apps/webserver/config/mime.types
-curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/nginx.conf > /raweb/apps/webserver/raweb.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/raweb.conf > /raweb/apps/webserver/raweb.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/fastcgi.conf > /raweb/apps/webserver/fastcgi.conf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/fastcgi_params > /raweb/apps/webserver/fastcgi_params
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/koi-utf > /raweb/apps/webserver/koi-utf
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/koi-win > /raweb/apps/webserver/koi-win
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/scgi_params > /raweb/apps/webserver/scgi_params
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/uwsgi_params > /raweb/apps/webserver/uwsgi_params
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/uwsgi_params > /raweb/apps/webserver/uwsgi_params
+curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/win-utf > /raweb/apps/webserver/win-utf
+
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/cloudflare.conf > /raweb/apps/webserver/config/cloudflare.conf
 curl -s https://raw.githubusercontent.com/raweb-panel/nginx/refs/heads/main/static/config/http_map.conf > /raweb/apps/webserver/config/http_map.conf
 curl -s https://raw.githubusercontent.com/nbs-system/naxsi/master/naxsi_config/naxsi_core.rules > /raweb/apps/webserver/modsec/naxi.core
 curl -s https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended > /raweb/apps/webserver/modsec/modsecurity.conf
+echo 'Include /raweb/apps/webserver/modsec/owasp-crs/crs-setup.conf' >> /raweb/apps/webserver/modsec/modsecurity.conf
+echo 'Include /raweb/apps/webserver/modsec/owasp-crs/rules/*.conf' >> /raweb/apps/webserver/modsec/modsecurity.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/unicode.mapping > /raweb/apps/webserver/modsec/unicode.mapping
 chown -R raweb:raweb /raweb; chown -R raweb:raweb /raweb/*
 systemctl daemon-reload
