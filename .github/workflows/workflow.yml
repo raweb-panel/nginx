@@ -43,8 +43,8 @@ jobs:
           UPLOAD_USER: ${{ secrets.UPLOAD_USER }}
           UPLOAD_PASS: ${{ secrets.UPLOAD_PASS }}
           BUILD_CORES: '70'
-          DOMAIN: 'repo.julio.al'
-          RAWEB_WEBSERVER_VERSION: '1.0.4'
+          DOMAIN: 'de.repo.raweb.al'
+          RAWEB_WEBSERVER_VERSION: '1.0.0'
           # https://nginx.org/en/download.html
           NGINX_VERSION: '1.29.0'
           # https://github.com/openssl/openssl

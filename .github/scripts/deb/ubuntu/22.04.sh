@@ -194,7 +194,7 @@ Version: $LATEST_VERSION_NGINX
 Section: web
 Priority: optional
 Architecture: $DEB_ARCH
-Maintainer: Raweb Panel <cd@julio.al>
+Maintainer: Julio S. <cd@julio.al>
 Depends: logrotate
 Description: Raweb Webserver (nginx) for Ubuntu $BUILD_CODE
 EOF
