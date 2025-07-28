@@ -175,7 +175,7 @@ After=network.target
 Wants=network.target
 
 [Service]
-Type=simple
+Type=forking
 User=root
 WorkingDirectory=/raweb/apps/webserver
 ExecStart=/usr/sbin/raweb-webserver -c /raweb/apps/webserver/raweb.conf
@@ -233,6 +233,7 @@ echo 'Include /raweb/apps/webserver/modsec/owasp-crs/crs-setup.conf' >> /raweb/a
 echo 'Include /raweb/apps/webserver/modsec/owasp-crs/rules/*.conf' >> /raweb/apps/webserver/modsec/modsecurity.conf
 curl -s https://raw.githubusercontent.com/theraw/The-World-Is-Yours/master/static/modsec/unicode.mapping > /raweb/apps/webserver/modsec/unicode.mapping
 chown -R raweb:raweb /raweb; chown -R raweb:raweb /raweb/*
+systemctl daemon-reexec
 systemctl daemon-reload
 systemctl enable raweb-webserver.service
 if ! systemctl is-active --quiet raweb-webserver.service; then
@@ -259,6 +260,7 @@ EOF
 cat > "$DEB_ROOT/DEBIAN/postrm" <<'EOF'
 #!/bin/bash
 set -e
+systemctl daemon-reexec
 systemctl daemon-reload
 if [ -d "/raweb/apps/webserver" ] && [ -z "$(ls -A /raweb/apps/webserver)" ]; then
     rmdir /raweb/apps/webserver
