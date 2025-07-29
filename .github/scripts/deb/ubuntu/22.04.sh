@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 # ====================================================================================
 if [ -z "$UPLOAD_USER" ] || [ -z "$UPLOAD_PASS" ]; then
     echo "Missing UPLOAD_USER or UPLOAD_PASS"
@@ -17,9 +18,7 @@ export DEBIAN_FRONTEND=noninteractive
 echo "Updating..." && apt-get update -y > /dev/null 2>&1
 echo "Upgrading..." && apt-get upgrade -y > /dev/null 2>&1
 echo "Installing curl..." && apt-get install curl jq -y > /dev/null 2>&1
-# id raweb &>/dev/null || useradd -m -d /raweb raweb; chown -R raweb:raweb /raweb
-id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb
-mkdir -p /var/tmp/raweb/body/
+id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb; mkdir -p /var/tmp/raweb/body/
 # ====================================================================================
 #LATEST_VERSION_NGINX=$(curl -s https://nginx.org/en/download.html | grep -oP 'nginx-\K[0-9]+\.[0-9]+\.[0-9]+(?=\.tar\.gz)' | sort -V | tail -1)
 LATEST_VERSION_NGINX="$RAWEB_WEBSERVER_VERSION"
@@ -39,55 +38,58 @@ DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata dialog > /de
 echo "Install reqs..." && apt-get -y install wget zip unzip build-essential libssl-dev curl nano git > /dev/null 2>&1
 # apt-get -y install iptables ipset
 echo "Install reqs..." && apt-get install -y libtool pkg-config make cmake automake autoconf > /dev/null 2>&1
-echo "Install reqs..." && apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev liblua5.1-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev rsync > /dev/null 2>&1
+echo "Install reqs..." && apt-get install -y libyajl-dev ssdeep zlib1g-dev libxslt1-dev libgd-dev libgeoip-dev liblmdb-dev libfuzzy-dev libmaxminddb-dev libcurl4-openssl-dev libxml2 libxml2-dev libpcre3-dev mercurial libpcre2-dev libc-ares-dev libre2-dev rsync > /dev/null 2>&1
 # ====================================================================================
 mkdir -p $GITHUB_WORKSPACE/nginx_source
 mkdir -p $GITHUB_WORKSPACE/nginx_mods
-cd $GITHUB_WORKSPACE/nginx_source; wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz > /dev/null 2>&1; tar xf nginx-${NGINX_VERSION}.tar.gz && rm -Rf nginx-${NGINX_VERSION}.tar.gz
+cd $GITHUB_WORKSPACE/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..." && wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz > /dev/null 2>&1; tar xf nginx-${NGINX_VERSION}.tar.gz && rm -Rf nginx-${NGINX_VERSION}.tar.gz
 # ====================================================================================
 # BORINGSSL
-cd $GITHUB_WORKSPACE/nginx_mods; git clone https://boringssl.googlesource.com/boringssl
-cd $GITHUB_WORKSPACE/nginx_mods/boringssl; mkdir -p build; cd build; cmake .. > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods; git clone https://boringssl.googlesource.com/boringssl > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/boringssl; mkdir -p build; cd build; cmake .. > /dev/null 2>&1; echo "Building BoringSSL..." && make -j$CORES > /dev/null 2>&1
 mkdir -p "$GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib"
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl"; ln -s ../include include
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
 # ====================================================================================
 # ZLIB
-cd $GITHUB_WORKSPACE/nginx_mods && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zlib-* zlib
+# cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
+# cd $GITHUB_WORKSPACE/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zlib-* zlib
+# cd $GITHUB_WORKSPACE/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && git clone https://github.com/cloudflare/zlib.git > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_MODSECURITY
-git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git
-cd ModSecurity; git submodule init; git submodule update; ./build.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+echo "Downloading ModSecurity..." && git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git > /dev/null 2>&1
+cd ModSecurity; git submodule init > /dev/null 2>&1; git submodule update > /dev/null 2>&1; ./build.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; echo "Building ModSecurity..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_PCRE
-cd $GITHUB_WORKSPACE/nginx_mods && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
 cd $GITHUB_WORKSPACE/nginx_mods && tar xf pcre2-${SYSTEM_PCRE}.tar.gz; rm -Rf pcre2-${SYSTEM_PCRE}.tar.gz
-cd $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; make clean > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; echo "Building PCRE2..." && make -j$CORES > /dev/null 2>&1
 # ====================================================================================
 # LibInjection
-cd $GITHUB_WORKSPACE/nginx_mods && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/libinjection && echo "Configuring libmodsecurity" && ./autogen.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading LibInjection..." && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_MODSECURITY
-cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading NgxModSec v${NGX_MOD_MODSECURITY}..." && wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
 cd $GITHUB_WORKSPACE/nginx_mods/; tar xf v${NGX_MOD_MODSECURITY}.tar.gz; rm -Rf v${NGX_MOD_MODSECURITY}.tar.gz
 # ====================================================================================
 # NGX_MOD_HEADERS_MORE
-cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${NGX_MOD_HEADERS_MORE}.tar.gz > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Headers v${NGX_MOD_HEADERS_MORE}..." && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${NGX_MOD_HEADERS_MORE}.tar.gz > /dev/null 2>&1
 cd $GITHUB_WORKSPACE/nginx_mods/; tar xf v${NGX_MOD_HEADERS_MORE}.tar.gz; rm -Rf v${NGX_MOD_HEADERS_MORE}.tar.gz
 # ====================================================================================
 # Brotli
-cd $GITHUB_WORKSPACE/nginx_mods/; git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $GITHUB_WORKSPACE/nginx_mods/ngx_brotli && git submodule update --init > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Brotli..." && git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $GITHUB_WORKSPACE/nginx_mods/ngx_brotli && git submodule update --init > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_GEOIP2
-cd $GITHUB_WORKSPACE/nginx_mods/; wget https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_MOD_GEOIP2}.tar.gz
+cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading GEOIP2 v${NGX_MOD_GEOIP2}..." && wget https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_MOD_GEOIP2}.tar.gz > /dev/null 2>&1
 cd $GITHUB_WORKSPACE/nginx_mods/; tar xf ${NGX_MOD_GEOIP2}.tar.gz; rm -Rf ${NGX_MOD_GEOIP2}.tar.gz
 # ====================================================================================
 # Naxsi
-cd $GITHUB_WORKSPACE/nginx_mods/; git clone --recurse-submodules https://github.com/wargio/naxsi.git naxsi > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Naxsi..." && git clone --recurse-submodules https://github.com/wargio/naxsi.git naxsi > /dev/null 2>&1
 # ====================================================================================
-cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --with-compat \
+echo "Building Nginx v${NGINX_VERSION}..." && cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --with-compat \
                                           --user=raweb                                                            \
                                           --group=raweb                                                           \
                                           --build="Raweb Webserver v$NGINX_VERSION"                               \
@@ -141,8 +143,8 @@ cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS=-fPIC CXXFLAG
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/ModSecurity-nginx-${NGX_MOD_MODSECURITY}          \
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/naxsi/naxsi_src                                   \
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/ngx_brotli                                        \
-                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC -flto=$CORES -I $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/include/" \
-                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -flto=$CORES -L $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib/ -lstdc++" > /dev/null 2>&1
+                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC -I $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/include/" \
+                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -L $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/lib/ -lstdc++" > /dev/null 2>&1
                                           touch $GITHUB_WORKSPACE/nginx_mods/boringssl/.openssl/include/openssl/ssl.h
                                           make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
@@ -295,14 +297,3 @@ rsync -avz --password-file=$GITHUB_WORKSPACE/.rsync "$DEB_PACKAGE_FILE" rsync://
 # ====================================================================================
 # ====================================================================================
 # ====================================================================================
-
-
-
-
-
-
-
-
-
-
-

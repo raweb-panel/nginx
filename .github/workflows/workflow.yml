@@ -15,12 +15,47 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - name: debian12
+            image: debian:12
+            code: bookworm
+            repo: debian
+            folder: packages
+            script: ./scripts/deb/debian/12.sh
+
+          - name: debian11
+            image: debian:11
+            code: bullseye
+            repo: debian
+            folder: packages
+            script: ./scripts/deb/debian/11.sh
+
+          - name: alma8
+            image: almalinux:8
+            code: el8
+            repo: alma
+            folder: packages
+            script: ./scripts/rpm/alma/8.sh
+
+          - name: alma9
+            image: almalinux:9
+            code: el9
+            repo: alma
+            folder: packages
+            script: ./scripts/rpm/alma/9.sh
+
           - name: ubuntu2204
             image: ubuntu:22.04
             code: jammy
             repo: ubuntu
             folder: packages
-            script: .github/scripts/deb/ubuntu/22.04.sh
+            script: ./scripts/deb/ubuntu/22.04.sh
+
+          - name: ubuntu2404
+            image: ubuntu:24.04
+            code: noble
+            repo: ubuntu
+            folder: packages
+            script: ./scripts/deb/ubuntu/24.04.sh
 
     container:
       image: ${{ matrix.image }}
@@ -47,8 +82,6 @@ jobs:
           RAWEB_WEBSERVER_VERSION: '1.0.0'
           # https://nginx.org/en/download.html
           NGINX_VERSION: '1.29.0'
-          # https://github.com/openssl/openssl
-          SYSTEM_OPENSSL: '3.5.1'
           # https://github.com/PCRE2Project/pcre2/releases
           SYSTEM_PCRE: '10.45'
           # https://github.com/owasp-modsecurity/ModSecurity-nginx/releases
@@ -57,3 +90,5 @@ jobs:
           NGX_MOD_HEADERS_MORE: '0.39'
           # https://github.com/leev/ngx_http_geoip2_module/releases
           NGX_MOD_GEOIP2: '3.4'
+          # https://github.com/google/boringssl/releases
+          BORINGSSL_VERSION: '0.20250701.0'
