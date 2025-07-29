@@ -30,14 +30,16 @@ jobs:
             script: .github/scripts/deb/debian/11.sh
 
           - name: alma8
-            image: almalinux:8
+            # image: almalinux:8
+            image: almalinux8cache
             code: el8
             repo: alma
             folder: packages
             script: .github/scripts/rpm/alma/8.sh
 
           - name: alma9
-            image: almalinux:9
+            # image: almalinux:9
+            image: almalinux9cache
             code: el9
             repo: alma
             folder: packages
