@@ -54,9 +54,9 @@ cd $GITHUB_WORKSPACE/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..."
 echo "Downloading BoringSSL v${BORINGSSL_VERSION}..." && cd "$GITHUB_WORKSPACE/nginx_mods/" && wget https://github.com/google/boringssl/releases/download/$BORINGSSL_VERSION/boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1
 cd "$GITHUB_WORKSPACE/nginx_mods/" && tar -xf boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1; rm -rf boringssl-$BORINGSSL_VERSION.tar.gz
 cd $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; echo "Building BoringSSL..." && make -j$CORES ; make install
-mkdir -p "/r/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
-cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
-cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
+#mkdir -p "/r/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
+#cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
+#cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
 # ====================================================================================
 # ZLIB
 # cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
@@ -156,22 +156,22 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $GITHUB_WORKSPACE/nginx_source/
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/ModSecurity-nginx-${NGX_MOD_MODSECURITY}          \
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/naxsi/naxsi_src                                   \
                                           --add-module=$GITHUB_WORKSPACE/nginx_mods/ngx_brotli                                        \
-                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIE -I $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/ -I /usr/local/modsecurity/include -I $GITHUB_WORKSPACE/nginx_mods/zlib" \
+                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIE -I $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/include/ -I /usr/local/modsecurity/include -I $GITHUB_WORKSPACE/nginx_mods/zlib" \
                                           --with-ld-opt="\
                                               -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie \
                                               -Wl,-rpath,/usr/local/modsecurity/lib \
                                               -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs \
                                               -L /lib64 \
-                                              -L $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib \
+                                              -L $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64 \
                                               -L $GITHUB_WORKSPACE/nginx_mods/zlib -lz \
                                               -Wl,--start-group \
                                               -lpcre2-8 \
-                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib/libssl.a \
-                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib/libcrypto.a \
+                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64/libssl.a \
+                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64/libcrypto.a \
                                               -lbrotlienc -lbrotlicommon \
                                               -Wl,--end-group \
                                               -lstdc++ -lpthread -lcrypt -lm -lxml2 -lxslt -lexslt -lgd -lGeoIP" > /dev/null 2>&1
-                                          touch $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/openssl/ssl.h
+#                                          touch $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/openssl/ssl.h
                                           make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
 # ====================================================================================

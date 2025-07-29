@@ -15,13 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: alma8
-            # image: almalinux:8
-            image: raweb22/almalinux8cache:8
-            code: el8
-            repo: alma
-            folder: packages
-            script: .github/scripts/rpm/alma/8.sh
 
           - name: alma9
             # image: almalinux:9
