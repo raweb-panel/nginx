@@ -35,13 +35,13 @@ if curl -s "$RPM_REPO_URL" | grep -q "$RPM_PACKAGE_FILE_NAME"; then
     exit 0
 fi
 # ====================================================================================
-echo "Adding remi..." && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-8.rpm > /dev/null 2>&1
+echo "Adding remi..." && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
 echo "Enabling remi..." && dnf config-manager --set-enabled remi > /dev/null 2>&1
 echo "Clean Repo..." && dnf clean all && dnf repolist > /dev/null 2>&1
 echo "Installing build tools..." && dnf install --allowerasing -y wget zip unzip gcc gcc-c++ make openssl-devel curl nano git jq \
     libtool pkgconf-pkg-config cmake automake autoconf yajl ssdeep-devel zlib-devel libxslt-devel gd-devel \
     lmdb-libs libmaxminddb libmaxminddb-devel libcurl-devel libxml2 libxml2-devel pcre-devel pcre2-devel c-ares-devel \
-    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file luajit luajit-devel > /dev/null 2>&1
+    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel > /dev/null 2>&1
 # ====================================================================================
 GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-/tmp}
 mkdir -p $GITHUB_WORKSPACE/nginx_source
