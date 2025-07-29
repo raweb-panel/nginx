@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+#set -e
 # ====================================================================================
 if [ -z "$UPLOAD_USER" ] || [ -z "$UPLOAD_PASS" ]; then
     echo "Missing UPLOAD_USER or UPLOAD_PASS"
@@ -53,7 +53,7 @@ cd $GITHUB_WORKSPACE/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..."
 # BORINGSSL
 echo "Downloading BoringSSL v${BORINGSSL_VERSION}..." && cd "$GITHUB_WORKSPACE/nginx_mods/" && wget https://github.com/google/boringssl/releases/download/$BORINGSSL_VERSION/boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1
 cd "$GITHUB_WORKSPACE/nginx_mods/" && tar -xf boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1; rm -rf boringssl-$BORINGSSL_VERSION.tar.gz
-cd $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. > /dev/null 2>&1; echo "Building BoringSSL..." && make -j$CORES > /dev/null 2>&1
+cd $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. > /dev/null 2>&1; echo "Building BoringSSL..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 mkdir -p "/r/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
 cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
