@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -e
+set -e
 # ====================================================================================
 if [ -z "$UPLOAD_USER" ] || [ -z "$UPLOAD_PASS" ]; then
     echo "Missing UPLOAD_USER or UPLOAD_PASS"
@@ -45,35 +45,36 @@ fi
 #    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel > /dev/null 2>&1
 # ====================================================================================
 GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-/tmp}
-mkdir -p $GITHUB_WORKSPACE/nginx_source
-mkdir -p $GITHUB_WORKSPACE/nginx_mods
+NGX_BUILD_PA="/ngx"
+mkdir -p $NGX_BUILD_PA/nginx_source
+mkdir -p $NGX_BUILD_PA/nginx_mods
 # ====================================================================================
-cd $GITHUB_WORKSPACE/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..." && wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz > /dev/null 2>&1; tar xf nginx-${NGINX_VERSION}.tar.gz && rm -Rf nginx-${NGINX_VERSION}.tar.gz
+cd $NGX_BUILD_PA/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..." && wget https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz > /dev/null 2>&1; tar xf nginx-${NGINX_VERSION}.tar.gz && rm -Rf nginx-${NGINX_VERSION}.tar.gz
 # ====================================================================================
 # BORINGSSL
-echo "Downloading BoringSSL v${BORINGSSL_VERSION}..." && cd "$GITHUB_WORKSPACE/nginx_mods/" && wget https://github.com/google/boringssl/releases/download/$BORINGSSL_VERSION/boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1
-cd "$GITHUB_WORKSPACE/nginx_mods/" && tar -xf boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1; rm -rf boringssl-$BORINGSSL_VERSION.tar.gz
-cd $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; echo "Building BoringSSL..." && make -j$CORES ; make install
-#mkdir -p "/r/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
-#cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
-#cd "$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
+echo "Downloading BoringSSL v${BORINGSSL_VERSION}..." && cd "$NGX_BUILD_PA/nginx_mods/" && wget https://github.com/google/boringssl/releases/download/$BORINGSSL_VERSION/boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1
+cd "$NGX_BUILD_PA/nginx_mods/" && tar -xf boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1; rm -rf boringssl-$BORINGSSL_VERSION.tar.gz
+cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; echo "Building BoringSSL..." && make -j$CORES ; make install
+mkdir -p "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
+cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
+cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
 # ====================================================================================
 # ZLIB
-# cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
-# cd $GITHUB_WORKSPACE/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zlib-* zlib
-# cd $GITHUB_WORKSPACE/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading ZLIB..." && git clone https://github.com/cloudflare/zlib.git > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+# cd $NGX_BUILD_PA/nginx_mods && echo "Downloading ZLIB..." && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
+# cd $NGX_BUILD_PA/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zlib-* zlib
+# cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods && echo "Downloading ZLIB..." && git clone https://github.com/cloudflare/zlib.git > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_PCRE
-cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading PCRE2..." && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods && tar xf pcre2-${SYSTEM_PCRE}.tar.gz; rm -Rf pcre2-${SYSTEM_PCRE}.tar.gz
-cd $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure --enable-utf --enable-unicode-properties --enable-static > /dev/null 2>&1; echo "Building PCRE2..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods && echo "Downloading PCRE2..." && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods && tar xf pcre2-${SYSTEM_PCRE}.tar.gz; rm -Rf pcre2-${SYSTEM_PCRE}.tar.gz
+cd $NGX_BUILD_PA/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure --enable-utf --enable-unicode-properties --enable-static > /dev/null 2>&1; echo "Building PCRE2..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_MODSECURITY
-echo "Downloading ModSecurity..." && cd $GITHUB_WORKSPACE/nginx_mods && git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/ModSecurity && git submodule init > /dev/null 2>&1 && git submodule update > /dev/null 2>&1 && ./build.sh > /dev/null 2>&1 
-cd $GITHUB_WORKSPACE/nginx_mods/ModSecurity && ./configure                    \
+echo "Downloading ModSecurity..." && cd $NGX_BUILD_PA/nginx_mods && git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/ModSecurity && git submodule init > /dev/null 2>&1 && git submodule update > /dev/null 2>&1 && ./build.sh > /dev/null 2>&1 
+cd $NGX_BUILD_PA/nginx_mods/ModSecurity && ./configure                    \
                                         --prefix=/usr/local/modsecurity       \
                                         CPPFLAGS="-I/usr/local/include -fPIC" \
                                         LDFLAGS="-L/usr/local/lib"            \
@@ -82,28 +83,28 @@ cd $GITHUB_WORKSPACE/nginx_mods/ModSecurity && ./configure                    \
 echo "Compiling ModSecurity..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # LibInjection
-cd $GITHUB_WORKSPACE/nginx_mods && echo "Downloading LibInjection..." && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods && echo "Downloading LibInjection..." && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_MODSECURITY
-cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading NgxModSec v${NGX_MOD_MODSECURITY}..." && wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/; tar xf v${NGX_MOD_MODSECURITY}.tar.gz; rm -Rf v${NGX_MOD_MODSECURITY}.tar.gz
+cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading NgxModSec v${NGX_MOD_MODSECURITY}..." && wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/; tar xf v${NGX_MOD_MODSECURITY}.tar.gz; rm -Rf v${NGX_MOD_MODSECURITY}.tar.gz
 # ====================================================================================
 # NGX_MOD_HEADERS_MORE
-cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Headers v${NGX_MOD_HEADERS_MORE}..." && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${NGX_MOD_HEADERS_MORE}.tar.gz > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/; tar xf v${NGX_MOD_HEADERS_MORE}.tar.gz; rm -Rf v${NGX_MOD_HEADERS_MORE}.tar.gz
+cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading Headers v${NGX_MOD_HEADERS_MORE}..." && wget https://github.com/openresty/headers-more-nginx-module/archive/refs/tags/v${NGX_MOD_HEADERS_MORE}.tar.gz > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/; tar xf v${NGX_MOD_HEADERS_MORE}.tar.gz; rm -Rf v${NGX_MOD_HEADERS_MORE}.tar.gz
 # ====================================================================================
 # Brotli
-cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Brotli..." && git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $GITHUB_WORKSPACE/nginx_mods/ngx_brotli && git submodule update --init > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading Brotli..." && git clone https://github.com/google/ngx_brotli.git > /dev/null 2>&1; cd $NGX_BUILD_PA/nginx_mods/ngx_brotli && git submodule update --init > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_GEOIP2
-cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading GEOIP2 v${NGX_MOD_GEOIP2}..." && wget https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_MOD_GEOIP2}.tar.gz > /dev/null 2>&1
-cd $GITHUB_WORKSPACE/nginx_mods/; tar xf ${NGX_MOD_GEOIP2}.tar.gz; rm -Rf ${NGX_MOD_GEOIP2}.tar.gz
+cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading GEOIP2 v${NGX_MOD_GEOIP2}..." && wget https://github.com/leev/ngx_http_geoip2_module/archive/refs/tags/${NGX_MOD_GEOIP2}.tar.gz > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/; tar xf ${NGX_MOD_GEOIP2}.tar.gz; rm -Rf ${NGX_MOD_GEOIP2}.tar.gz
 # ====================================================================================
 # Naxsi
-cd $GITHUB_WORKSPACE/nginx_mods/; echo "Downloading Naxsi..." && git clone --recurse-submodules https://github.com/wargio/naxsi.git naxsi > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading Naxsi..." && git clone --recurse-submodules https://github.com/wargio/naxsi.git naxsi > /dev/null 2>&1
 # ====================================================================================
-echo "Building Nginx v${NGINX_VERSION}..." && cd $GITHUB_WORKSPACE/nginx_source/nginx-${NGINX_VERSION} && CFLAGS="-fPIE" CXXFLAGS="-fPIE" ./configure --with-compat \
+echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_BUILD_PA/nginx_source/nginx-${NGINX_VERSION} && CFLAGS="-fPIE" CXXFLAGS="-fPIE" ./configure --with-compat \
                                           --user=raweb                                                            \
                                           --group=raweb                                                           \
                                           --build="Raweb Webserver v$NGINX_VERSION"                               \
@@ -119,9 +120,9 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $GITHUB_WORKSPACE/nginx_source/
                                           --http-fastcgi-temp-path=/var/tmp/raweb/body/fastcgi                    \
                                           --http-uwsgi-temp-path=/var/tmp/raweb/body/uwsgi                        \
                                           --http-scgi-temp-path=/var/tmp/raweb/body/scgi                          \
-                                          --with-openssl=$GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION \
+                                          --with-openssl=$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION    \
                                           --with-pcre                                                             \
-                                          --with-pcre=$GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}     \
+                                          --with-pcre=$NGX_BUILD_PA/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}         \
                                           --with-poll_module                                                      \
                                           --with-threads                                                          \
                                           --with-file-aio                                                         \
@@ -151,27 +152,27 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $GITHUB_WORKSPACE/nginx_source/
                                           --with-stream_realip_module                                             \
                                           --with-stream_geoip_module                                              \
                                           --with-stream_ssl_preread_module                                        \
-                                          --add-module=$GITHUB_WORKSPACE/nginx_mods/ngx_http_geoip2_module-${NGX_MOD_GEOIP2}          \
-                                          --add-module=$GITHUB_WORKSPACE/nginx_mods/headers-more-nginx-module-${NGX_MOD_HEADERS_MORE} \
-                                          --add-module=$GITHUB_WORKSPACE/nginx_mods/ModSecurity-nginx-${NGX_MOD_MODSECURITY}          \
-                                          --add-module=$GITHUB_WORKSPACE/nginx_mods/naxsi/naxsi_src                                   \
-                                          --add-module=$GITHUB_WORKSPACE/nginx_mods/ngx_brotli                                        \
-                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIE -I $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/include/ -I /usr/local/modsecurity/include -I $GITHUB_WORKSPACE/nginx_mods/zlib" \
+                                          --add-module=$NGX_BUILD_PA/nginx_mods/ngx_http_geoip2_module-${NGX_MOD_GEOIP2}          \
+                                          --add-module=$NGX_BUILD_PA/nginx_mods/headers-more-nginx-module-${NGX_MOD_HEADERS_MORE} \
+                                          --add-module=$NGX_BUILD_PA/nginx_mods/ModSecurity-nginx-${NGX_MOD_MODSECURITY}          \
+                                          --add-module=$NGX_BUILD_PA/nginx_mods/naxsi/naxsi_src                                   \
+                                          --add-module=$NGX_BUILD_PA/nginx_mods/ngx_brotli                                        \
+                                          --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIE -I $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/ -I /usr/local/modsecurity/include -I $NGX_BUILD_PA/nginx_mods/zlib" \
                                           --with-ld-opt="\
                                               -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie \
                                               -Wl,-rpath,/usr/local/modsecurity/lib \
-                                              -L $GITHUB_WORKSPACE/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs \
+                                              -L $NGX_BUILD_PA/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs \
                                               -L /lib64 \
-                                              -L $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64 \
-                                              -L $GITHUB_WORKSPACE/nginx_mods/zlib -lz \
+                                              -L $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib \
+                                              -L $NGX_BUILD_PA/nginx_mods/zlib -lz \
                                               -Wl,--start-group \
                                               -lpcre2-8 \
-                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64/libssl.a \
-                                              $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/install/lib64/libcrypto.a \
+                                              $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib/libssl.a \
+                                              $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib/libcrypto.a \
                                               -lbrotlienc -lbrotlicommon \
                                               -Wl,--end-group \
                                               -lstdc++ -lpthread -lcrypt -lm -lxml2 -lxslt -lexslt -lgd -lGeoIP" > /dev/null 2>&1
-#                                          touch $GITHUB_WORKSPACE/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/openssl/ssl.h
+                                          touch $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/openssl/ssl.h
                                           make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
 # ====================================================================================
