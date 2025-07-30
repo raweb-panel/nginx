@@ -26,9 +26,9 @@ id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb
 LATEST_VERSION_NGINX="$RAWEB_WEBSERVER_VERSION"
 RPM_PACKAGE_NAME="raweb-webserver"
 RPM_ARCH="x86_64"
-RPM_DIST="alma9"
-RPM_PACKAGE_FILE_NAME="${RPM_PACKAGE_NAME}-${LATEST_VERSION_NGINX}-${RPM_DIST}.${RPM_ARCH}.rpm"
-RPM_REPO_URL="https://$DOMAIN/$UPLOAD_USER/$BUILD_REPO/${RPM_DIST}/"
+RPM_DIST="$BUILD_NAME"
+RPM_PACKAGE_FILE_NAME="${RPM_PACKAGE_NAME}-${LATEST_VERSION_NGINX}-${BUILD_CODE}.${RPM_ARCH}.rpm"
+RPM_REPO_URL="https://$DOMAIN/$UPLOAD_USER/$BUILD_REPO/${BUILD_CODE}/"
 # ====================================================================================
 if curl -s "$RPM_REPO_URL" | grep -q "$RPM_PACKAGE_FILE_NAME"; then
     echo "✅ Package $RPM_PACKAGE_FILE_NAME already exists. Skipping build."
