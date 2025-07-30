@@ -198,7 +198,14 @@ cp /raweb/apps/webserver/raweb.conf "$RPM_ROOT/raweb/apps/webserver/"
 chmod +x "$RPM_ROOT/usr/sbin/raweb-webserver"
 # ====================================================================================
 for lib in $(ldd /usr/sbin/raweb-webserver | grep "=> /" | awk '{print $3}'); do
-    cp "$lib" "$RPM_ROOT/usr/lib/"
+    case "$lib" in
+        /lib64/libc.so.*|/lib64/ld-linux-x86-64.so.*|/lib64/libm.so.*|/lib64/libpthread.so.*|/lib64/librt.so.*|/lib64/libdl.so.*|/lib64/libgcc_s.so.*|/lib64/libstdc++.so.*)
+            # skip system libraries
+            ;;
+        *)
+            cp "$lib" "$RPM_ROOT/usr/lib/"
+            ;;
+    esac
 done
 # ====================================================================================
 cat > "$RPM_ROOT/etc/systemd/system/raweb-webserver.service" <<EOF

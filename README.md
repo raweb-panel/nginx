@@ -19,7 +19,7 @@ dnf -y update; dnf install -y wget ca-certificates gnupg2 epel-release sudo
 sudo tee /etc/yum.repos.d/raweb.repo << 'EOF'
 [raweb-alma9]
 name=Raweb Panel Repository for AlmaLinux 9
-baseurl=https://repo.raweb.al/rpm/alma9/x86_64
+baseurl=https://repo.raweb.al/rpm/el9/x86_64
 enabled=1
 gpgcheck=0
 EOF
@@ -35,7 +35,7 @@ dnf -y update; dnf install -y wget ca-certificates gnupg2 epel-release sudo
 sudo tee /etc/yum.repos.d/raweb.repo << 'EOF'
 [raweb-alma8]
 name=Raweb Panel Repository for AlmaLinux 8
-baseurl=https://repo.raweb.al/rpm/alma8/x86_64
+baseurl=https://repo.raweb.al/rpm/el8/x86_64
 enabled=1
 gpgcheck=0
 EOF
