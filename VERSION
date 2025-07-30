@@ -1,1 +1,30 @@
-1.0.0
+const fileData = items[0].json;
+
+const base64 = fileData.content.content; // base64 encoded version string
+const currentVersion = Buffer.from(base64, 'base64').toString('utf-8').trim();
+
+// Parse version
+let [major, minor] = currentVersion.split('.').map(Number);
+
+// Bump logic: 1.0 → 1.1 … 1.9 → 1.10 → 2.0
+if (minor < 10) {
+  minor += 1;
+} else {
+  major += 1;
+  minor = 0;
+}
+
+const newVersion = `${major}.${minor}`;
+const encoded = Buffer.from(newVersion).toString('base64');
+
+// Output payload for GitHub Update File node
+return [
+  {
+    json: {
+      path: fileData.content.path,
+      content: encoded,
+      message: `Bump version to ${newVersion}`,
+      sha: fileData.content.sha,
+    },
+  },
+];
