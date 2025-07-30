@@ -17,15 +17,16 @@ jobs:
         include:
 
           - name: alma9
-            # image: almalinux:9
-            image: raweb22/almalinux9cache:9
+            image: almalinux:9
+            #image: raweb22/almalinux9cache:9
             code: el9
             repo: alma
             folder: packages
             script: .github/scripts/rpm/alma/9.sh
 
           - name: alma8
-            image: raweb22/almalinux8cache:8
+            image: almalinux:8
+            #image: raweb22/almalinux8cache:8
             code: el8
             repo: alma
             folder: packages

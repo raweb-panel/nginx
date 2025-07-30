@@ -18,8 +18,8 @@ else
   CORES=${BUILD_CORES:-$TOTAL_CORES}
 fi
 # ====================================================================================
-#echo "Updating..." && yum -y update > /dev/null 2>&1; yum -y install dnf-plugins-core > /dev/null 2>&1; dnf -y update > /dev/null 2>&1
-#echo "Installing base tools..." && dnf install --allowerasing -y epel-release dnf-plugins-core curl jq > /dev/null 2>&1
+echo "Updating..." && yum -y update > /dev/null 2>&1; yum -y install dnf-plugins-core > /dev/null 2>&1; dnf -y update > /dev/null 2>&1
+echo "Installing base tools..." && dnf install --allowerasing -y epel-release dnf-plugins-core curl jq > /dev/null 2>&1
 # ====================================================================================
 id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb; mkdir -p /var/tmp/raweb/body/
 # ====================================================================================
@@ -35,14 +35,14 @@ if curl -s "$RPM_REPO_URL" | grep -q "$RPM_PACKAGE_FILE_NAME"; then
     exit 0
 fi
 # ====================================================================================
-#echo "Enabling crb..." && dnf config-manager --set-enabled crb > /dev/null 2>&1
-#echo "Adding remi..." && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
-#echo "Enabling remi..." && dnf config-manager --set-enabled remi > /dev/null 2>&1
-#echo "Clean Repo..." && dnf clean all > /dev/null 2>&1; dnf makecache > /dev/null 2>&1
-#echo "Installing build tools..." && dnf install --allowerasing -y wget zip unzip gcc gcc-c++ make openssl-devel curl nano git jq \
-#    libtool pkgconf-pkg-config cmake automake autoconf yajl ssdeep-devel zlib-devel libxslt-devel gd-devel \
-#    lmdb-libs libmaxminddb libmaxminddb-devel libcurl-devel libxml2 libxml2-devel pcre-devel pcre2-devel c-ares-devel \
-#    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel rpm-build > /dev/null 2>&1
+echo "Enabling crb..." && dnf config-manager --set-enabled crb > /dev/null 2>&1
+echo "Adding remi..." && dnf install -y https://rpms.remirepo.net/enterprise/remi-release-9.rpm > /dev/null 2>&1
+echo "Enabling remi..." && dnf config-manager --set-enabled remi > /dev/null 2>&1
+echo "Clean Repo..." && dnf clean all > /dev/null 2>&1; dnf makecache > /dev/null 2>&1
+echo "Installing build tools..." && dnf install --allowerasing -y wget zip unzip gcc gcc-c++ make openssl-devel curl nano git jq \
+    libtool pkgconf-pkg-config cmake automake autoconf yajl ssdeep-devel zlib-devel libxslt-devel gd-devel \
+    lmdb-libs libmaxminddb libmaxminddb-devel libcurl-devel libxml2 libxml2-devel pcre-devel pcre2-devel c-ares-devel \
+    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel rpm-build > /dev/null 2>&1
 # ====================================================================================
 GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-/tmp}
 NGX_BUILD_PA="/ngx"
