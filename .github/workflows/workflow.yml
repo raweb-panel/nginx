@@ -24,6 +24,13 @@ jobs:
             folder: packages
             script: .github/scripts/rpm/alma/9.sh
 
+          - name: alma8
+            image: raweb22/almalinux8cache:8
+            code: el8
+            repo: alma
+            folder: packages
+            script: .github/scripts/rpm/alma/9.sh
+
     container:
       image: ${{ matrix.image }}
       options: --privileged

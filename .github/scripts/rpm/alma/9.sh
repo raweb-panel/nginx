@@ -42,7 +42,7 @@ fi
 #echo "Installing build tools..." && dnf install --allowerasing -y wget zip unzip gcc gcc-c++ make openssl-devel curl nano git jq \
 #    libtool pkgconf-pkg-config cmake automake autoconf yajl ssdeep-devel zlib-devel libxslt-devel gd-devel \
 #    lmdb-libs libmaxminddb libmaxminddb-devel libcurl-devel libxml2 libxml2-devel pcre-devel pcre2-devel c-ares-devel \
-#    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel > /dev/null 2>&1
+#    re2-devel rsync GeoIP GeoIP-devel pkg-config diffutils file lua-devel rpm-build > /dev/null 2>&1
 # ====================================================================================
 GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-/tmp}
 NGX_BUILD_PA="/ngx"
@@ -54,7 +54,7 @@ cd $NGX_BUILD_PA/nginx_source; echo "Downloading Nginx v${NGINX_VERSION}..." && 
 # BORINGSSL
 echo "Downloading BoringSSL v${BORINGSSL_VERSION}..." && cd "$NGX_BUILD_PA/nginx_mods/" && wget https://github.com/google/boringssl/releases/download/$BORINGSSL_VERSION/boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1
 cd "$NGX_BUILD_PA/nginx_mods/" && tar -xf boringssl-$BORINGSSL_VERSION.tar.gz > /dev/null 2>&1; rm -rf boringssl-$BORINGSSL_VERSION.tar.gz
-cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON ..; echo "Building BoringSSL..." && make -j$CORES ; make install
+cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; mkdir -p build; cd build; cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON .. > /dev/null 2>&1; echo "Building BoringSSL..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 mkdir -p "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib"
 cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl"; ln -s ../include include
 cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.a" ".openssl/lib"; cp "build/libssl.a" ".openssl/lib"
