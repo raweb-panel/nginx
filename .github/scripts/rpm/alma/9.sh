@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -e
 # ====================================================================================
 if [ -z "$UPLOAD_USER" ] || [ -z "$UPLOAD_PASS" ]; then
     echo "Missing UPLOAD_USER or UPLOAD_PASS"
@@ -62,19 +62,19 @@ cd "$NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION"; cp "build/libcrypto.
 # ZLIB
 # cd $NGX_BUILD_PA/nginx_mods && echo "Downloading ZLIB..." && wget http://zlib.net/current/zlib.tar.gz > /dev/null 2>&1
 # cd $NGX_BUILD_PA/nginx_mods && tar xf zlib.tar.gz; rm -Rf zlib.tar.gz; mv zlib-* zlib
-# cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+# cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 cd $NGX_BUILD_PA/nginx_mods && echo "Downloading ZLIB..." && git clone https://github.com/cloudflare/zlib.git > /dev/null 2>&1
-cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/zlib && CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_PCRE
 cd $NGX_BUILD_PA/nginx_mods && echo "Downloading PCRE2..." && wget https://github.com/PCRE2Project/pcre2/archive/refs/tags/pcre2-${SYSTEM_PCRE}.tar.gz > /dev/null 2>&1
 cd $NGX_BUILD_PA/nginx_mods && tar xf pcre2-${SYSTEM_PCRE}.tar.gz; rm -Rf pcre2-${SYSTEM_PCRE}.tar.gz
-cd $NGX_BUILD_PA/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure --enable-utf --enable-unicode-properties --enable-static > /dev/null 2>&1; echo "Building PCRE2..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE} && ./autogen.sh > /dev/null 2>&1; CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure --enable-utf --enable-unicode-properties --enable-static > /dev/null 2>&1; echo "Building PCRE2..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # SYSTEM_MODSECURITY
 echo "Downloading ModSecurity..." && cd $NGX_BUILD_PA/nginx_mods && git clone --depth 1 -b v3/master --single-branch https://github.com/SpiderLabs/ModSecurity.git > /dev/null 2>&1
 cd $NGX_BUILD_PA/nginx_mods/ModSecurity && git submodule init > /dev/null 2>&1 && git submodule update > /dev/null 2>&1 && ./build.sh > /dev/null 2>&1 
-cd $NGX_BUILD_PA/nginx_mods/ModSecurity && ./configure                    \
+cd $NGX_BUILD_PA/nginx_mods/ModSecurity && CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure                    \
                                         --prefix=/usr/local/modsecurity       \
                                         CPPFLAGS="-I/usr/local/include -fPIC" \
                                         LDFLAGS="-L/usr/local/lib"            \
@@ -84,7 +84,7 @@ echo "Compiling ModSecurity..." && make -j$CORES > /dev/null 2>&1; make install 
 # ====================================================================================
 # LibInjection
 cd $NGX_BUILD_PA/nginx_mods && echo "Downloading LibInjection..." && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
-cd $NGX_BUILD_PA/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; CFLAGS=-fPIC CXXFLAGS=-fPIC CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
+cd $NGX_BUILD_PA/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 # ====================================================================================
 # NGX_MOD_MODSECURITY
 cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading NgxModSec v${NGX_MOD_MODSECURITY}..." && wget https://github.com/SpiderLabs/ModSecurity-nginx/archive/refs/tags/v${NGX_MOD_MODSECURITY}.tar.gz > /dev/null 2>&1
@@ -104,7 +104,7 @@ cd $NGX_BUILD_PA/nginx_mods/; tar xf ${NGX_MOD_GEOIP2}.tar.gz; rm -Rf ${NGX_MOD_
 # Naxsi
 cd $NGX_BUILD_PA/nginx_mods/; echo "Downloading Naxsi..." && git clone --recurse-submodules https://github.com/wargio/naxsi.git naxsi > /dev/null 2>&1
 # ====================================================================================
-echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_BUILD_PA/nginx_source/nginx-${NGINX_VERSION} && CFLAGS="-fPIE" CXXFLAGS="-fPIE" ./configure --with-compat \
+echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_BUILD_PA/nginx_source/nginx-${NGINX_VERSION} && CFLAGS="-fPIC" CXXFLAGS="-fPIC" CPPFLAGS="-fPIC" ./configure --with-compat \
                                           --user=raweb                                                            \
                                           --group=raweb                                                           \
                                           --build="Raweb Webserver v$NGINX_VERSION"                               \
