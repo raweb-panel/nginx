@@ -173,9 +173,10 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_BUILD_PA/nginx_source/ngin
                                               $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/lib/libcrypto.a \
                                               -lbrotlienc -lbrotlicommon \
                                               -Wl,--end-group \
-                                              -lstdc++ -lpthread -lcrypt -lm -lxml2 -lxslt -lexslt -lgd -lGeoIP" > /dev/null 2>&1
+                                              -lstdc++ -lpthread -lcrypt -lm -lxml2 -lxslt -lexslt -lgd -lGeoIP"
                                           touch $NGX_BUILD_PA/nginx_mods/boringssl-$BORINGSSL_VERSION/.openssl/include/openssl/ssl.h
-                                          make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
+                                          #make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
+                                          make -j$CORES; make install
                                           unset NGINX
 # ====================================================================================
 RPM_BUILD_DIR="$GITHUB_WORKSPACE/rpmbuild"
