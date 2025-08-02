@@ -46,6 +46,19 @@ jobs:
         id: version
         run: echo "RAWEB_WEBSERVER_VERSION=$(cat VERSION)" >> $GITHUB_ENV
 
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: /ngx
+          key: ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-${{ env.SYSTEM_PCRE }}-${{ env.NGX_MOD_MODSECURITY }}-${{ env.NGX_MOD_HEADERS_MORE }}-${{ env.NGX_MOD_GEOIP2 }}-${{ env.BORINGSSL_VERSION }}-v2
+          restore-keys: |
+            ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-${{ env.SYSTEM_PCRE }}-${{ env.NGX_MOD_MODSECURITY }}-${{ env.NGX_MOD_HEADERS_MORE }}-${{ env.NGX_MOD_GEOIP2 }}-
+            ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-${{ env.SYSTEM_PCRE }}-${{ env.NGX_MOD_MODSECURITY }}-${{ env.NGX_MOD_HEADERS_MORE }}-
+            ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-${{ env.SYSTEM_PCRE }}-${{ env.NGX_MOD_MODSECURITY }}-
+            ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-${{ env.SYSTEM_PCRE }}-
+            ${{ matrix.name }}-ngx-deps-${{ env.NGINX_VERSION }}-
+            ${{ matrix.name }}-ngx-deps-
+
       - name: Run Build Script
         run: |
           chmod +x ${{ matrix.script }}
@@ -60,6 +73,7 @@ jobs:
           UPLOAD_PASS: ${{ secrets.UPLOAD_PASS }}
           BUILD_CORES: '70'
           DOMAIN: 'de.repo.raweb.al'
+          NGX_WORK_FOLDER: '/ngx'
           RAWEB_WEBSERVER_VERSION: ${{ env.RAWEB_WEBSERVER_VERSION }}
           # https://nginx.org/en/download.html
           NGINX_VERSION: '1.29.0'
