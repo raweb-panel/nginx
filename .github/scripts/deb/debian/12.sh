@@ -89,7 +89,7 @@ else
 fi
 # ====================================================================================
 # LibInjection
-if [ ! -d "$NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}" ]; then
+if [ ! -d "$NGX_WORK_FOLDER/nginx_mods/libinjection" ]; then
     cd $NGX_WORK_FOLDER/nginx_mods && echo "Downloading LibInjection..." && git clone https://github.com/libinjection/libinjection.git > /dev/null 2>&1
     cd $NGX_WORK_FOLDER/nginx_mods/libinjection && ./autogen.sh > /dev/null 2>&1; ./configure > /dev/null 2>&1; echo "Building LibInjection..." && make -j$CORES > /dev/null 2>&1; make install > /dev/null 2>&1
 else
@@ -186,7 +186,7 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_WORK_FOLDER/nginx_source/n
                                           --add-module=$NGX_WORK_FOLDER/nginx_mods/naxsi/naxsi_src                                   \
                                           --add-module=$NGX_WORK_FOLDER/nginx_mods/ngx_brotli                                        \
                                           --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC -I $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/include/" \
-                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -L $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/ -lstdc++"
+                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -L $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/ -Wl,-rpath,/usr/local/modsecurity/lib -L/usr/local/modsecurity/lib -lmodsecurity -L $NGX_WORK_FOLDER/nginx_mods/ngx_brotli/deps/brotli/c/../out -lbrotlienc -lbrotlicommon -lm -lpthread -lcrypt $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs/libpcre2-8.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libssl.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libcrypto.a $NGX_WORK_FOLDER/nginx_mods/zlib/libz.a -lxml2 -lxslt -lexslt -lgd -lGeoIP -lmaxminddb -lstdc++"
                                           touch $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/include/openssl/ssl.h
                                           make -j$CORES; make install; make clean > /dev/null 2>&1
                                           unset NGINX
@@ -200,7 +200,7 @@ mkdir -p "$DEB_ROOT/etc/systemd/system"
 mkdir -p "$DEB_ROOT/DEBIAN"
 mkdir -p "$DEB_ROOT/usr/lib/"
 mkdir -p "$DEB_ROOT/usr/sbin/"
-mdkir -p "$DEB_ROOT/var/tmp/raweb/body/"
+mkdir -p "$DEB_ROOT/var/tmp/raweb/body/"
 mkdir -p "$DEB_ROOT/raweb/apps/webserver/modsec/"
 git clone https://github.com/coreruleset/coreruleset.git $DEB_ROOT/raweb/apps/webserver/modsec/owasp-crs
 
