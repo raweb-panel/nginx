@@ -186,9 +186,9 @@ echo "Building Nginx v${NGINX_VERSION}..." && cd $NGX_WORK_FOLDER/nginx_source/n
                                           --add-module=$NGX_WORK_FOLDER/nginx_mods/naxsi/naxsi_src                                   \
                                           --add-module=$NGX_WORK_FOLDER/nginx_mods/ngx_brotli                                        \
                                           --with-cc-opt="-O3 -fstack-protector-strong -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC -I $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/include/" \
-                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -L $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/ -Wl,-rpath,/usr/local/modsecurity/lib -L/usr/local/modsecurity/lib -lmodsecurity -L $NGX_WORK_FOLDER/nginx_mods/ngx_brotli/deps/brotli/c/../out -lbrotlienc -lbrotlicommon -lm -lpthread -lcrypt $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs/libpcre2-8.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libssl.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libcrypto.a $NGX_WORK_FOLDER/nginx_mods/zlib/libz.a -lxml2 -lxslt -lexslt -lgd -lGeoIP -lmaxminddb -lstdc++"
+                                          --with-ld-opt="-Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie -L $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs -lpcre2-8 -L/lib/x86_64-linux-gnu -lpcre -L $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/ -L/usr/local/modsecurity/lib -lmodsecurity -L $NGX_WORK_FOLDER/nginx_mods/ngx_brotli/deps/brotli/c/../out -lbrotlienc -lbrotlicommon -lm $NGX_WORK_FOLDER/nginx_mods/pcre2-pcre2-${SYSTEM_PCRE}/.libs/libpcre2-8.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libssl.a $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/lib/libcrypto.a -lpthread $NGX_WORK_FOLDER/nginx_mods/zlib/libz.a -lxml2 -lxslt -lexslt -lgd -lGeoIP -lmaxminddb -lcrypt -lstdc++" > /dev/null 2>&1
                                           touch $NGX_WORK_FOLDER/nginx_mods/boringssl/.openssl/include/openssl/ssl.h
-                                          make -j$CORES; make install; make clean > /dev/null 2>&1
+                                          make -j$CORES > /dev/null 2>&1; make install; make clean > /dev/null 2>&1
                                           unset NGINX
 # ====================================================================================
 DEB_BUILD_DIR="$GITHUB_WORKSPACE/debbuild"
@@ -202,10 +202,12 @@ mkdir -p "$DEB_ROOT/usr/lib/"
 mkdir -p "$DEB_ROOT/usr/sbin/"
 mkdir -p "$DEB_ROOT/var/tmp/raweb/body/"
 mkdir -p "$DEB_ROOT/raweb/apps/webserver/modsec/"
+mkdir -p "$DEB_ROOT/usr/lib/x86_64-linux-gnu/"
 git clone https://github.com/coreruleset/coreruleset.git $DEB_ROOT/raweb/apps/webserver/modsec/owasp-crs
 
 cp /usr/sbin/raweb-webserver "$DEB_ROOT/usr/sbin/"
 cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
+cp /usr/local/modsecurity/lib/libmodsecurity.so* "$DEB_ROOT/usr/lib/x86_64-linux-gnu/"
 chmod +x "$DEB_ROOT/usr/sbin/raweb-webserver"
 
 cat > "$DEB_ROOT/etc/systemd/system/raweb-webserver.service" <<EOF
@@ -235,7 +237,7 @@ Section: web
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: Julio S. <cd@julio.al>
-Depends: logrotate, libpcre2-8-0, libssl3, libxml2, libxslt1.1, libgd3, libgeoip1, libmaxminddb0, libcurl4, libc6, zlib1g, libbrotli1, libyajl2, libfuzzy2, liblmdb0, libre2-9, libc-ares2, libmodsecurity3
+Depends: logrotate, libpcre2-8-0, libssl3t64, libxml2, libxslt1.1, libgd3, libgeoip1t64, libmaxminddb0, libcurl4t64, libc6, zlib1g, libbrotli1, libyajl2, libfuzzy2, liblmdb0, libre2-dev, libcares2
 Description: Raweb Webserver (nginx) for Debian $BUILD_CODE
 EOF
 
