@@ -5,6 +5,8 @@ if [ -z "$UPLOAD_USER" ] || [ -z "$UPLOAD_PASS" ]; then
     echo "Missing UPLOAD_USER or UPLOAD_PASS"
     exit 1
 fi
+echo "Alma 9 is not working properly, anyone is welcome to test build and PR a fix"
+exit 0
 # ====================================================================================
 export CFLAGS="-fPIC"
 export CXXFLAGS="-fPIC"

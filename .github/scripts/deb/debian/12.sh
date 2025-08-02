@@ -15,8 +15,7 @@ else
 fi
 # ====================================================================================
 export DEBIAN_FRONTEND=noninteractive
-echo "Updating..." && apt-get update -y > /dev/null 2>&1
-echo "Upgrading..." && apt-get upgrade -y > /dev/null 2>&1
+echo "Updating..." && apt-get update -y > /dev/null 2>&1; apt-get upgrade -y > /dev/null 2>&1
 echo "Installing curl..." && apt-get install curl jq -y > /dev/null 2>&1
 id raweb &>/dev/null || useradd -M -d /raweb -s /bin/bash raweb; mkdir -p /raweb; chown -R raweb:raweb /raweb; mkdir -p /var/tmp/raweb/body/
 # ====================================================================================
@@ -166,10 +165,6 @@ cp /usr/sbin/raweb-webserver "$DEB_ROOT/usr/sbin/"
 cp /raweb/apps/webserver/raweb.conf "$DEB_ROOT/raweb/apps/webserver/"
 chmod +x "$DEB_ROOT/usr/sbin/raweb-webserver"
 
-for lib in $(ldd /usr/sbin/raweb-webserver | grep "=> /" | awk '{print $3}'); do
-    cp "$lib" "$DEB_ROOT/usr/lib/"
-done
-
 cat > "$DEB_ROOT/etc/systemd/system/raweb-webserver.service" <<EOF
 [Unit]
 Description=Raweb Webserver
@@ -197,8 +192,8 @@ Section: web
 Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: Julio S. <cd@julio.al>
-Depends: logrotate
-Description: Raweb Webserver (nginx) for Ubuntu $BUILD_CODE
+Depends: logrotate, libpcre2-8-0, libssl3, libxml2, libxslt1.1, libgd3, libgeoip1, libmaxminddb0, libcurl4, libc6, zlib1g, libbrotli1, libyajl2, libfuzzy2, liblmdb0, libre2-9, libc-ares2 libmodsecurity3
+Description: Raweb Webserver (nginx) for Debian $BUILD_CODE
 EOF
 
 cat > "$DEB_ROOT/DEBIAN/postinst" <<'EOF'
